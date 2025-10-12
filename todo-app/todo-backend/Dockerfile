@@ -1,6 +1,8 @@
-FROM node:20.9.0-bullseye-slim
+FROM node:trixie-slim
 
-RUN apt-get update && apt-get install -y --no-install-recommends dumb-init
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends dumb-init \
+  && apt-get clean
 
 ENV NODE_ENV=production
 

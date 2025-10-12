@@ -69,6 +69,14 @@ singleRouter.put('/', async (req, res) => {
   res.send(req.todo);
 });
 
+/* GET statistics. */
+router.get('/statistics', async (_, res) => {
+  const currentCount = await getAsync('added_todos') 
+  res.json({
+    added_todos: Number(currentCount) || 0
+  });
+});
+
 router.use('/:id', findByIdMiddleware, singleRouter)
 
 

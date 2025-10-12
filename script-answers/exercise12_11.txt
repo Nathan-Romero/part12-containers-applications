@@ -1,0 +1,14 @@
+docker ps | grep redis
+docker exec -it <redis-container-id> redis-cli
+KEYS *
+GET added_todos
+SET added_todos 9001
+GET added_todos
+POST http://localhost:3000/api/todos
+Body: {"text": "Test todo"}
+GET added_todos
+DEL added_todos
+GET added_todos
+POST http://localhost:3000/api/todos
+Body: {"text": "Another test todo"}
+GET added_todos
