@@ -1,6 +1,17 @@
 const express = require('express');
 const { Todo } = require('../mongo')
 const router = express.Router();
+const { getAsync, setAsync } = require('../redis')
+
+// Initialize the counter if it doesn't exist
+const initializeCounter = async () => {
+  const currentCount = await getAsync('added_todos')
+  if (currentCount === null) {
+    await setAsync('added_todos', 0)
+  }
+}
+
+initializeCounter()
 
 /* GET todos listing. */
 router.get('/', async (_, res) => {
@@ -14,6 +25,11 @@ router.post('/', async (req, res) => {
     text: req.body.text,
     done: false
   })
+  
+  // Increment the counter in Redis
+  const currentCount = await getAsync('added_todos')
+  await setAsync('added_todos', Number(currentCount) + 1)
+  
   res.send(todo);
 });
 
@@ -35,12 +51,30 @@ singleRouter.delete('/', async (req, res) => {
 
 /* GET todo. */
 singleRouter.get('/', async (req, res) => {
-  res.sendStatus(405); // Implement this
+  res.send(req.todo);
 });
 
 /* PUT todo. */
 singleRouter.put('/', async (req, res) => {
-  res.sendStatus(405); // Implement this
+  const { text, done } = req.body;
+  
+  // Update fields if they are provided in the request
+  req.todo.text = text !== undefined ? text : req.todo.text;
+  req.todo.done = done !== undefined ? done : req.todo.done;
+  
+  // Save the updated todo
+  await req.todo.save();
+  
+  // Return the updated todo
+  res.send(req.todo);
+});
+
+/* GET statistics. */
+router.get('/statistics', async (_, res) => {
+  const currentCount = await getAsync('added_todos') 
+  res.json({
+    added_todos: Number(currentCount) || 0
+  });
 });
 
 router.use('/:id', findByIdMiddleware, singleRouter)
